@@ -1,0 +1,15 @@
+﻿{
+  "build": {
+    "builder": "dockerfile",
+    "dockerfile": "Dockerfile.deploy"
+  },
+  "deploy": {
+    "numReplicas": 1,
+    "startCommand": "npm start",
+    "restartPolicyMaxRetries": 10
+  },
+  "variables": {
+    "PORT": "3001",
+    "NODE_ENV": "production"
+  }
+}
