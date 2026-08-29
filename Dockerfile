@@ -2,25 +2,20 @@ FROM node:18-alpine
 
 WORKDIR /app
 
-# Copy package files
+# Copy files
 COPY package.json package-lock.json ./
-COPY backend/package.json backend/
-COPY backend/tsconfig.json backend/
-COPY backend/src backend/src/
+COPY backend backend/
 
-# Install all dependencies
+# Install dependencies
 RUN npm install
 
-# Build backend
-WORKDIR /app/backend
+# Build
 RUN npm run build
-
-# Back to root
-WORKDIR /app
 
 EXPOSE 8000
 
 ENV NODE_ENV=production
 ENV PORT=8000
 
+# Start using npm start from backend
 CMD ["npm", "start"]

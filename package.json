@@ -8,14 +8,13 @@
     "npm": "9.x"
   },
   "workspaces": [
-    "frontend",
     "backend"
   ],
   "scripts": {
-    "dev": "concurrently \"npm run dev -w frontend\" \"npm run dev -w backend\"",
+    "dev": "npm run dev -w backend",
     "build": "npm run build -w backend",
-    "start": "node backend/dist/index.js",
-    "test": "npm test -w frontend && npm test -w backend"
+    "start": "cd backend && npm start",
+    "test": "npm test -w backend"
   },
   "devDependencies": {
     "concurrently": "^8.2.0"
