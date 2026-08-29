@@ -1,45 +1,26 @@
-# Multi-stage build
-FROM node:18-alpine AS builder
+FROM node:18-alpine
 
 WORKDIR /app
 
 # Copy package files
 COPY package.json package-lock.json ./
 COPY backend/package.json backend/
-COPY frontend/package.json frontend/
+COPY backend/tsconfig.json backend/
+COPY backend/src backend/src/
 
-# Install dependencies
+# Install all dependencies
 RUN npm install
 
-# Copy source code
-COPY backend backend/
-COPY frontend frontend/
-
-# Build backend TypeScript
+# Build backend
 WORKDIR /app/backend
 RUN npm run build
 
-# Build frontend
-WORKDIR /app/frontend
-RUN npm run build || true
-
-# Production stage
-FROM node:18-alpine
-
+# Back to root
 WORKDIR /app
-
-# Copy only production dependencies
-COPY --from=builder /app/package.json /app/package-lock.json ./
-COPY --from=builder /app/backend/package.json ./backend/
-COPY --from=builder /app/backend/dist ./backend/dist
-COPY --from=builder /app/backend/src ./backend/src
-
-# Install production dependencies only
-RUN npm install --production
 
 EXPOSE 8000
 
 ENV NODE_ENV=production
 ENV PORT=8000
 
-CMD ["node", "backend/dist/index.js"]
+CMD ["npm", "start"]
