@@ -1,98 +1,70 @@
-import express from 'express'
-import cors from 'cors'
+const express = require('express');
+const cors = require('cors');
 
-const app = express()
+const app = express();
 
 // Middleware
-app.use(express.json({ limit: '10mb' }))
-app.use(express.urlencoded({ extended: true, limit: '10mb' }))
-app.use(cors({
-  origin: '*',
-  credentials: true,
-}))
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(cors());
 
-// Request logging
+// Logging
 app.use((req: any, res: any, next: any) => {
-  console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`)
-  next()
-})
+  console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
+  next();
+});
 
-// Health check
+// Health endpoint
 app.get('/health', (req: any, res: any) => {
   res.json({ 
     status: 'ok',
-    timestamp: new Date().toISOString(),
-  })
-})
+    timestamp: new Date().toISOString()
+  });
+});
 
-// Root route
+// Root endpoint
 app.get('/', (req: any, res: any) => {
   res.json({
     name: 'MEMORA API',
     version: '1.0.0',
-    description: 'Premium Telegram Mini App for Social Crypto Trading',
-    status: 'running'
-  })
-})
+    status: 'running',
+    message: 'Premium Telegram Mini App for Crypto Trading'
+  });
+});
 
-// API routes
+// API endpoints
 app.get('/api/health', (req: any, res: any) => {
-  res.json({ status: 'ok' })
-})
+  res.json({ status: 'ok' });
+});
 
 app.get('/api/tokens', (req: any, res: any) => {
-  res.json({
-    success: true,
-    data: [],
-    message: 'Tokens endpoint'
-  })
-})
+  res.json({ success: true, data: [] });
+});
 
 app.get('/api/traders', (req: any, res: any) => {
-  res.json({
-    success: true,
-    data: [],
-    message: 'Traders endpoint'
-  })
-})
+  res.json({ success: true, data: [] });
+});
 
 app.get('/api/wallet', (req: any, res: any) => {
-  res.json({
-    success: true,
-    data: null,
-    message: 'Wallet endpoint'
-  })
-})
+  res.json({ success: true, data: null });
+});
 
 app.post('/api/auth/telegram', (req: any, res: any) => {
-  res.json({
-    success: true,
-    message: 'Telegram authentication endpoint'
-  })
-})
+  res.json({ success: true });
+});
 
-// Error handling middleware
-app.use((err: any, req: any, res: any, next: any) => {
-  console.error('Error:', err)
-  res.status(err.status || 500).json({
-    success: false,
-    error: err.message || 'Internal Server Error'
-  })
-})
-
-// 404 handler
+// 404
 app.use((req: any, res: any) => {
-  res.status(404).json({
-    success: false,
-    error: 'Not Found'
-  })
-})
+  res.status(404).json({ error: 'Not Found' });
+});
 
-const port = process.env.PORT || 8000
-app.listen(port, () => {
-  console.log(`🚀 MEMORA API Server running on port ${port}`)
-  console.log(`Environment: ${process.env.NODE_ENV || 'development'}`)
-  console.log(`Ready to handle requests...`)
-})
+// Error handler
+app.use((err: any, req: any, res: any, next: any) => {
+  console.error(err);
+  res.status(500).json({ error: 'Server Error' });
+});
 
-export default app
+const PORT = process.env.PORT || 8000;
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
