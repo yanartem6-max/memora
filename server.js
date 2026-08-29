@@ -1,5 +1,7 @@
 const http = require('http');
 const https = require('https');
+const fs = require('fs');
+const path = require('path');
 const { connectDB, query } = require('./db');
 
 const PORT = process.env.PORT || 8000;
@@ -84,7 +86,20 @@ const server = http.createServer((req, res) => {
       webhook_url: 'https://memora-iuue.onrender.com/webhook/telegram'
     }));
   }
-  // API endpoints
+  // Telegram Mini App UI
+  else if (req.url === '/app' || req.url === '/app/') {
+    const filePath = path.join(__dirname, 'public', 'app.html');
+    fs.readFile(filePath, 'utf8', (err, content) => {
+      if (err) {
+        res.writeHead(404, { 'Content-Type': 'text/plain' });
+        res.end('App not found');
+      } else {
+        res.writeHead(200, { 'Content-Type': 'text/html' });
+        res.end(content);
+      }
+    });
+    return;
+  }
   else if (req.url === '/api/tokens' || req.url === '/api/tokens/') {
     try {
       const result = await query('SELECT * FROM tokens ORDER BY created_at DESC LIMIT 100');

@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>MEMORA - Token Tracker</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--tg-theme-bg-color, #ffffff);
+            color: var(--tg-theme-text-color, #000000);
+            padding: 16px;
+            padding-bottom: 80px;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 24px;
+            padding: 20px 0;
+        }
+        
+        .header h1 {
+            font-size: 28px;
+            font-weight: bold;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 8px;
+        }
+        
+        .header p {
+            color: var(--tg-theme-hint-color, #999);
+            font-size: 14px;
+        }
+        
+        .tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+            background: var(--tg-theme-secondary-bg-color, #f0f0f0);
+            padding: 4px;
+            border-radius: 12px;
+        }
+        
+        .tab {
+            flex: 1;
+            padding: 12px;
+            background: transparent;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+            color: var(--tg-theme-text-color, #000);
+        }
+        
+        .tab.active {
+            background: var(--tg-theme-button-color, #667eea);
+            color: var(--tg-theme-button-text-color, #ffffff);
+        }
+        
+        .content {
+            display: none;
+        }
+        
+        .content.active {
+            display: block;
+        }
+        
+        .card {
+            background: var(--tg-theme-secondary-bg-color, #f8f9fa);
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        
+        .token-card {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .token-info {
+            flex: 1;
+        }
+        
+        .token-name {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        
+        .token-symbol {
+            color: var(--tg-theme-hint-color, #999);
+            font-size: 14px;
+        }
+        
+        .token-price {
+            text-align: right;
+        }
+        
+        .price {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 4px;
+        }
+        
+        .change {
+            font-size: 14px;
+            font-weight: 500;
+            padding: 4px 8px;
+            border-radius: 6px;
+        }
+        
+        .change.positive {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .change.negative {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .trader-card {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .trader-rank {
+            width: 40px;
+            height: 40px;
+            background: var(--tg-theme-button-color, #667eea);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 18px;
+        }
+        
+        .trader-info {
+            flex: 1;
+        }
+        
+        .trader-name {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        
+        .trader-stats {
+            color: var(--tg-theme-hint-color, #999);
+            font-size: 13px;
+        }
+        
+        .trader-profit {
+            text-align: right;
+        }
+        
+        .profit-amount {
+            font-size: 18px;
+            font-weight: bold;
+            color: #28a745;
+        }
+        
+        .win-rate {
+            font-size: 13px;
+            color: var(--tg-theme-hint-color, #999);
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--tg-theme-hint-color, #999);
+        }
+        
+        .empty-state-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: var(--tg-theme-hint-color, #999);
+        }
+        
+        .spinner {
+            border: 3px solid var(--tg-theme-secondary-bg-color, #f0f0f0);
+            border-top: 3px solid var(--tg-theme-button-color, #667eea);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 12px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>💎 MEMORA</h1>
+        <p>Token Tracker & Top Traders</p>
+    </div>
+    
+    <div class="tabs">
+        <button class="tab active" onclick="showTab('tokens')">🪙 Токены</button>
+        <button class="tab" onclick="showTab('traders')">🏆 Трейдеры</button>
+    </div>
+    
+    <div id="tokens" class="content active">
+        <div class="loading">
+            <div class="spinner"></div>
+            <p>Загрузка токенов...</p>
+        </div>
+    </div>
+    
+    <div id="traders" class="content">
+        <div class="loading">
+            <div class="spinner"></div>
+            <p>Загрузка трейдеров...</p>
+        </div>
+    </div>
+    
+    <script>
+        // Инициализация Telegram Web App
+        const tg = window.Telegram.WebApp;
+        tg.expand();
+        tg.ready();
+        
+        // API URL
+        const API_URL = 'https://memora-iuue.onrender.com';
+        
+        // Показать таб
+        function showTab(tabName) {
+            // Обновляем кнопки
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            // Показываем контент
+            document.querySelectorAll('.content').forEach(content => {
+                content.classList.remove('active');
+            });
+            document.getElementById(tabName).classList.add('active');
+            
+            // Загружаем данные если ещё не загружены
+            if (tabName === 'tokens' && !window.tokensLoaded) {
+                loadTokens();
+            } else if (tabName === 'traders' && !window.tradersLoaded) {
+                loadTraders();
+            }
+        }
+        
+        // Загрузка токенов
+        async function loadTokens() {
+            try {
+                const response = await fetch(`${API_URL}/api/tokens`);
+                const data = await response.json();
+                
+                const container = document.getElementById('tokens');
+                
+                if (data.success && data.data.length > 0) {
+                    container.innerHTML = data.data.map(token => `
+                        <div class="card token-card">
+                            <div class="token-info">
+                                <div class="token-name">${token.name || token.symbol}</div>
+                                <div class="token-symbol">${token.symbol}</div>
+                            </div>
+                            <div class="token-price">
+                                <div class="price">$${token.price || '0.00'}</div>
+                                ${token.change_24h ? `
+                                    <div class="change ${token.change_24h >= 0 ? 'positive' : 'negative'}">
+                                        ${token.change_24h >= 0 ? '+' : ''}${token.change_24h}%
+                                    </div>
+                                ` : ''}
+                            </div>
+                        </div>
+                    `).join('');
+                } else {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-state-icon">🪙</div>
+                            <p>Токенов пока нет</p>
+                        </div>
+                    `;
+                }
+                
+                window.tokensLoaded = true;
+            } catch (error) {
+                console.error('Error loading tokens:', error);
+                document.getElementById('tokens').innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">⚠️</div>
+                        <p>Ошибка загрузки</p>
+                    </div>
+                `;
+            }
+        }
+        
+        // Загрузка трейдеров
+        async function loadTraders() {
+            try {
+                const response = await fetch(`${API_URL}/api/traders`);
+                const data = await response.json();
+                
+                const container = document.getElementById('traders');
+                
+                if (data.success && data.data.length > 0) {
+                    container.innerHTML = data.data.map((trader, index) => `
+                        <div class="card trader-card">
+                            <div class="trader-rank">${index + 1}</div>
+                            <div class="trader-info">
+                                <div class="trader-name">Трейдер #${trader.id}</div>
+                                <div class="trader-stats">${trader.trades_count || 0} сделок</div>
+                            </div>
+                            <div class="trader-profit">
+                                <div class="profit-amount">$${trader.total_profit || '0.00'}</div>
+                                <div class="win-rate">${trader.win_rate || '0'}% винрейт</div>
+                            </div>
+                        </div>
+                    `).join('');
+                } else {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-state-icon">🏆</div>
+                            <p>Трейдеров пока нет</p>
+                        </div>
+                    `;
+                }
+                
+                window.tradersLoaded = true;
+            } catch (error) {
+                console.error('Error loading traders:', error);
+                document.getElementById('traders').innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">⚠️</div>
+                        <p>Ошибка загрузки</p>
+                    </div>
+                `;
+            }
+        }
+        
+        // Отправляем данные пользователя
+        if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
+            fetch(`${API_URL}/api/auth/telegram`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(tg.initDataUnsafe.user)
+            }).catch(err => console.log('Auth error:', err));
+        }
+        
+        // Загружаем токены при старте
+        loadTokens();
+    </script>
+</body>
+</html>
