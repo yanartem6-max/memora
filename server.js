@@ -1,9 +1,13 @@
 const http = require('http');
+const { connectDB, query } = require('./db');
 
 const PORT = process.env.PORT || 8000;
 const HOST = '0.0.0.0';
 
-// Простое хранилище в памяти (пока без БД)
+// Запускаем подключение к БД
+connectDB().catch(err => console.error('DB init failed:', err));
+
+// Fallback хранилище в памяти
 let tokens = [];
 let traders = [];
 let users = [];
@@ -47,25 +51,52 @@ const server = http.createServer((req, res) => {
   }
   // API endpoints
   else if (req.url === '/api/tokens' || req.url === '/api/tokens/') {
-    res.end(JSON.stringify({ 
-      success: true, 
-      data: tokens,
-      message: 'Tokens list (empty for now)'
-    }));
+    try {
+      const result = await query('SELECT * FROM tokens ORDER BY created_at DESC LIMIT 100');
+      res.end(JSON.stringify({ 
+        success: true, 
+        data: result.rows,
+        count: result.rows.length
+      }));
+    } catch (err) {
+      res.end(JSON.stringify({ 
+        success: true, 
+        data: tokens,
+        message: 'Using in-memory storage'
+      }));
+    }
   }
   else if (req.url === '/api/traders' || req.url === '/api/traders/') {
-    res.end(JSON.stringify({ 
-      success: true, 
-      data: traders,
-      message: 'Traders list (empty for now)'
-    }));
+    try {
+      const result = await query('SELECT * FROM traders ORDER BY total_profit DESC LIMIT 100');
+      res.end(JSON.stringify({ 
+        success: true, 
+        data: result.rows,
+        count: result.rows.length
+      }));
+    } catch (err) {
+      res.end(JSON.stringify({ 
+        success: true, 
+        data: traders,
+        message: 'Using in-memory storage'
+      }));
+    }
   }
   else if (req.url === '/api/users' || req.url === '/api/users/') {
-    res.end(JSON.stringify({ 
-      success: true, 
-      data: users,
-      message: 'Users list (empty for now)'
-    }));
+    try {
+      const result = await query('SELECT id, telegram_id, username, first_name, created_at FROM users ORDER BY created_at DESC LIMIT 100');
+      res.end(JSON.stringify({ 
+        success: true, 
+        data: result.rows,
+        count: result.rows.length
+      }));
+    } catch (err) {
+      res.end(JSON.stringify({ 
+        success: true, 
+        data: users,
+        message: 'Using in-memory storage'
+      }));
+    }
   }
   else if (req.url === '/api/auth/telegram' || req.url === '/api/auth/telegram/') {
     if (req.method === 'POST') {

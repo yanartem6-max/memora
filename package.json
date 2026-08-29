@@ -1,15 +1,15 @@
 {
   "name": "memora",
   "version": "1.0.0",
-  "description": "MEMORA API",
-  "main": "backend/dist/index.js",
-  "engines": {
-    "node": "18.17.0"
-  },
+  "description": "MEMORA Telegram Mini App - Token Trading Platform",
+  "main": "server.js",
   "scripts": {
-    "install-backend": "cd backend && npm install",
-    "build": "cd backend && npm run build",
-    "start": "cd backend && npm start",
-    "dev": "cd backend && npm run dev"
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "pg": "^8.11.3"
+  },
+  "engines": {
+    "node": ">=18.0.0"
   }
 }
