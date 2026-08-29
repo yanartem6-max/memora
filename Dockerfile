@@ -2,22 +2,24 @@ FROM node:18-alpine
 
 WORKDIR /app
 
-COPY package.json package-lock.json ./
-COPY backend backend/
+# Copy files
+COPY backend/package.json backend/package-lock.json ./
+COPY backend/src ./src
+COPY backend/tsconfig.json ./
 
+# Install dependencies
 RUN npm install
 
-WORKDIR /app/backend
+# Build TypeScript
+RUN npx tsc
 
-RUN npm install
-
-RUN npm run build
-
-WORKDIR /app
+# Verify dist exists
+RUN ls -la dist/
 
 EXPOSE 8000
 
 ENV NODE_ENV=production
 ENV PORT=8000
 
-CMD ["npm", "start"]
+# Direct node command - no npm
+CMD ["node", "dist/index.js"]
