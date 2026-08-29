@@ -3,30 +3,106 @@ const http = require('http');
 const PORT = process.env.PORT || 8000;
 const HOST = '0.0.0.0';
 
+// Простое хранилище в памяти (пока без БД)
+let tokens = [];
+let traders = [];
+let users = [];
+
 const server = http.createServer((req, res) => {
   console.log(`Request: ${req.method} ${req.url}`);
   
-  res.writeHead(200, { 
+  const headers = {
     'Content-Type': 'application/json',
-    'Access-Control-Allow-Origin': '*'
-  });
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization'
+  };
   
+  // Handle CORS preflight
+  if (req.method === 'OPTIONS') {
+    res.writeHead(200, headers);
+    res.end();
+    return;
+  }
+  
+  res.writeHead(200, headers);
+  
+  // Routes
   if (req.url === '/health' || req.url === '/health/') {
-    res.end(JSON.stringify({ status: 'ok', port: PORT }));
-  } else if (req.url === '/' || req.url === '') {
+    res.end(JSON.stringify({ status: 'ok', port: PORT, timestamp: new Date().toISOString() }));
+  } 
+  else if (req.url === '/' || req.url === '') {
     res.end(JSON.stringify({ 
       name: 'MEMORA API', 
       version: '1.0.0',
       status: 'running',
-      port: PORT
+      endpoints: {
+        health: '/health',
+        tokens: '/api/tokens',
+        traders: '/api/traders',
+        users: '/api/users',
+        telegram_auth: '/api/auth/telegram'
+      }
     }));
-  } else {
-    res.writeHead(404, { 'Content-Type': 'application/json' });
+  }
+  // API endpoints
+  else if (req.url === '/api/tokens' || req.url === '/api/tokens/') {
+    res.end(JSON.stringify({ 
+      success: true, 
+      data: tokens,
+      message: 'Tokens list (empty for now)'
+    }));
+  }
+  else if (req.url === '/api/traders' || req.url === '/api/traders/') {
+    res.end(JSON.stringify({ 
+      success: true, 
+      data: traders,
+      message: 'Traders list (empty for now)'
+    }));
+  }
+  else if (req.url === '/api/users' || req.url === '/api/users/') {
+    res.end(JSON.stringify({ 
+      success: true, 
+      data: users,
+      message: 'Users list (empty for now)'
+    }));
+  }
+  else if (req.url === '/api/auth/telegram' || req.url === '/api/auth/telegram/') {
+    if (req.method === 'POST') {
+      let body = '';
+      req.on('data', chunk => { body += chunk.toString(); });
+      req.on('end', () => {
+        try {
+          const data = JSON.parse(body);
+          res.end(JSON.stringify({ 
+            success: true, 
+            message: 'Telegram auth received',
+            data: data
+          }));
+        } catch (e) {
+          res.end(JSON.stringify({ success: false, error: 'Invalid JSON' }));
+        }
+      });
+    } else {
+      res.end(JSON.stringify({ 
+        success: true, 
+        message: 'POST to this endpoint to authenticate'
+      }));
+    }
+  }
+  else {
+    res.writeHead(404, headers);
     res.end(JSON.stringify({ error: 'Not Found', url: req.url }));
   }
 });
 
 server.listen(PORT, HOST, () => {
-  console.log(`Server running on ${HOST}:${PORT}`);
-  console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`🚀 MEMORA API Server running on ${HOST}:${PORT}`);
+  console.log(`📍 Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`🔗 Endpoints:`);
+  console.log(`   GET  /health`);
+  console.log(`   GET  /api/tokens`);
+  console.log(`   GET  /api/traders`);
+  console.log(`   POST /api/auth/telegram`);
+  console.log(`\n✅ Ready to handle requests...`);
 });
