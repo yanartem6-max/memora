@@ -1,22 +1,15 @@
 {
   "name": "memora",
   "version": "1.0.0",
-  "description": "MEMORA - Premium Telegram Mini App for Social Crypto Trading",
-  "private": true,
+  "description": "MEMORA API",
+  "main": "backend/dist/index.js",
   "engines": {
-    "node": "18.17.0",
-    "npm": "9.x"
+    "node": "18.17.0"
   },
-  "workspaces": [
-    "backend"
-  ],
   "scripts": {
-    "dev": "npm run dev -w backend",
-    "build": "npm run build -w backend",
+    "install-backend": "cd backend && npm install",
+    "build": "cd backend && npm run build",
     "start": "cd backend && npm start",
-    "test": "npm test -w backend"
-  },
-  "devDependencies": {
-    "concurrently": "^8.2.0"
+    "dev": "cd backend && npm run dev"
   }
 }
