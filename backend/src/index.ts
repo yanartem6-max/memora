@@ -65,8 +65,10 @@ app.listen(port, () => {
   console.log(`🚀 MEMORA API Server running on port ${port}`)
   console.log(`📍 http://localhost:${port}`)
   console.log(`Environment: ${config.nodeEnv}`)
-  console.log(`Database: ${config.database.url.split('@')[1]}`)
-  console.log(`Solana Network: ${config.solana.network}`)
+  if (config.database?.url) {
+    console.log(`Database: ${config.database.url.split('@')[1] || 'configured'}`)
+  }
+  console.log(`Solana Network: ${config.solana?.network || 'devnet'}`)
   console.log(`\nReady to handle requests...`)
 })
 
